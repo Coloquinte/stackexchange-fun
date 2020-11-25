@@ -1,7 +1,8 @@
 
 import random
 import matplotlib.pyplot as plt
-from matplotlib import collections  as mc
+
+# Basic checkers
 
 def check_problem(n, l, u):
     assert len(l) == n
@@ -27,6 +28,8 @@ def check_solution(n, l, u, x, tol=1.0e-12):
         else:
             assert abs(x[i] - avg) <= tol
 
+# Generate a random instance
+
 def random_problem(n):
     l = [0.0 for i in range(n)]
     u = [0.0 for i in range(n)]
@@ -36,6 +39,16 @@ def random_problem(n):
         l[i] = min(a, b)
         u[i] = max(a, b)
     return (l, u)
+
+# Solve the instance and return the values
+
+def solve(n, l, u):
+    check_problem(n, l, u)
+    x = solve_core(n, l, u)
+    check_solution(n, l, u, x)
+    return x
+
+# Special case for the first breakpoint
 
 def find_first_breakpoint(n, l, u):
     """
@@ -62,12 +75,16 @@ def find_first_breakpoint(n, l, u):
     # No breakpoint found: the optimal solution is a straight line
     return n-1, 0.5 * (lb + ub)
 
+# Special case for the last breakpoint
+
 def find_last_breakpoint(n, l, u):
     """
     Find the point where the solution returns to a constant line
     """
     k, val = find_first_breakpoint(n, list(reversed(l)), list(reversed(u)))
     return n-1-k, val
+
+# General case to find a breakpoint
 
 def find_next_breakpoint(n, l, u, bp, bp_val, last_bp, last_bp_val):
     """
@@ -78,6 +95,7 @@ def find_next_breakpoint(n, l, u, bp, bp_val, last_bp, last_bp_val):
     l_bp_ind = -1
     u_bp_ind = -1
     for i in range(bp+1, last_bp+1):
+        # Special case for the last breakpoint, as there is a straight line afterwards
         lb = l[i] if i != last_bp else last_bp_val
         ub = u[i] if i != last_bp else last_bp_val
         new_lb_slope = (lb - bp_val) / (i-bp)
@@ -113,12 +131,6 @@ def solve_core(n, l, u):
             x[i] = ((next_bp - i) * bp_val + (i - bp) * next_bp_val) / (next_bp - bp)
         bp = next_bp
         bp_val = next_bp_val
-    return x
-
-def solve(n, l, u):
-    check_problem(n, l, u)
-    x = solve_core(n, l, u)
-    check_solution(n, l, u, x)
     return x
 
 def draw_problem(n, l, u, x):
